@@ -8,8 +8,12 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.target_port }}
       protocol: TCP
       name: http
+    - port: {{ .Values.service.https }}
+      targetPort: {{ .Values.service.target_port }}
+      protocol: TCP
+      name: https
   selector:
     {{- include "graph-db-eval.selectorLabels" . | nindent 4 }}
