@@ -24,9 +24,56 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "graph-db-eval.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: 'KUZU_DB_PATH'
+              value: {{ .Values.dataVolume.kuzuDBPath }}
+            - name: "LOG_LEVEL"
+              value: "10"
+            - name: "LOG_PATH"
+              value: {{ .Values.logVolume.mountPath }}
+          volumeMounts:
+            - name: {{ .Values.dataVolume.name }}
+              mountPath: {{ .Values.dataVolume.mountPath }}
+            - name: {{ .Values.logVolume.name }}
+              mountPath: {{ .Values.logVolume.mountPath }}
+          command:
+            - "uvicorn"
+          args:
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "4000"
+            - "--workers"
+            - "1"
+            - "src.server:APP"
+{{/*          command: [ '/bin/sh' ]*/}}
+{{/*          args: [ '-c', 'sleep infinity' ]*/}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.target_port }}
+              protocol: TCP
+{{/*          startupProbe:*/}}
+{{/*            httpGet:*/}}
+{{/*              path: /docs*/}}
+{{/*              port: {{ .Values.service.target_port }}*/}}
+{{/*            failureThreshold: 30*/}}
+{{/*            periodSeconds: 10*/}}
+{{/*          livenessProbe:*/}}
+{{/*            httpGet:*/}}
+{{/*              path: /docs*/}}
+{{/*              port: {{ .Values.service.target_port }}*/}}
+{{/*            initialDelaySeconds: 1*/}}
+{{/*            periodSeconds: 30*/}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.securityContext | nindent 8 }}
+
       volumes:
         - name: {{ .Values.dataVolume.name }}
           persistentVolumeClaim:
@@ -34,50 +81,7 @@ spec:
         - name: {{ .Values.logVolume.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.logVolume.claimName }}
-      containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          volumeMounts:
-            - name: {{ .Values.dataVolume.name }}
-              mountPath: {{ .Values.dataVolume.mountPath }}
-            - name: {{ .Values.logVolume.name }}
-              mountPath: {{ .Values.logVolume.mountPath }}
-          command:
-            - 'uvicorn'
-          args:
-            - "--host"
-            - "0.0.0.0"
-            - "--port"
-            - "{{ .Values.service.target_port }}"
-            - "--workers"
-            - "4"
-            - "src.server:APP"
-{{/*          command: [ '/bin/sh' ]*/}}
-{{/*          args: [ '-c', 'sleep infinity' ]*/}}
-          env:
-            - name: 'KUZU_DB_PATH'
-              value: {{ .Values.dataVolume.mountPath }}
-            - name: "LOG_LEVEL"
-              value: "10"
-            - name: "LOG_PATH"
-              value: {{ .Values.logVolume.mountPath }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.target_port }}
-              protocol: TCP
-{{/*          livenessProbe:*/}}
-{{/*            httpGet:*/}}
-{{/*              path: /docs*/}}
-{{/*              port: {{ .Values.service.target_port }}*/}}
-{{/*          readinessProbe:*/}}
-{{/*            httpGet:*/}}
-{{/*              path: /docs*/}}
-{{/*              port: {{ .Values.service.target_port }}*/}}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
