@@ -33,8 +33,10 @@ spec:
       serviceAccount: {{ .Values.serviceAccount.name | quote }}
       {{- end }}
       initContainers:
+      {{/*          command: [ '/bin/sh', '-c', 'sleep infinity' ]*/}}
         - name: init-volume-mounts
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: busybox
+{{/*          "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"*/}}
           volumeMounts:
           {{- if .Values.persistentVolumeClaim.createStorageClaim }}
             - name: {{ include "memgraph.fullname" . }}-lib-storage
@@ -61,20 +63,26 @@ spec:
               {{- if .Values.persistentVolumeClaim.createUserClaim }}
               chown -R memgraph:memgraph {{ .Values.persistentVolumeClaim.userMountPath }} || true;
               {{- end }}
+{{/*              sysctl -w vm.max_map_count={{ .Values.sysctlInitContainer.maxMapCount }};*/}}
           securityContext:
             readOnlyRootFilesystem: false
-            runAsUser: 0
+{{/*            runAsUser: 0*/}}
 {{/*            capabilities:*/}}
 {{/*              drop: ["ALL"]*/}}
 {{/*              add: ["CHOWN"]*/}}
-{{/*        {{- if .Values.sysctlInitContainer.enabled }}*/}}
-{{/*        - name: init-sysctl*/}}
-{{/*          image: busybox*/}}
-{{/*          command: ['sh', '-c', 'sysctl -w vm.max_map_count={{ .Values.sysctlInitContainer.maxMapCount }}']*/}}
-{{/*          securityContext:*/}}
-{{/*            privileged: true*/}}
-{{/*            runAsUser: 0*/}}
-{{/*          {{- end }}*/}}
+
+        {{- if .Values.sysctlInitContainer.enabled }}
+        - name: init-sysctl
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          volumeMounts:
+            - name: sysctl
+              mountPath: /etc/sysctl.conf
+              subPath: sysctl.conf
+{{/*          command: [ '/bin/sh', '-c', 'sleep infinity' ]*/}}
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count={{ .Values.sysctlInitContainer.maxMapCount }}']
+          securityContext:
+            runAsUser: 0
+        {{- end }}
       terminationGracePeriodSeconds: {{ .Values.container.terminationGracePeriodSeconds }}
       securityContext: {}
       {{- if .Values.useImagePullSecrets }}
@@ -89,7 +97,10 @@ spec:
           {{- else }}
             claimName: {{ .Values.persistentVolumeClaim.existingClaim }}
           {{- end}}
-
+        - name: sysctl
+          configMap:
+            name: "{{- include "memgraph.fullname" . }}-scripts"
+            defaultMode: 511
       {{- if .Values.persistentVolumeClaim.createLogStorage }}
         - name: {{ include "memgraph.fullname" . }}-log-storage
           persistentVolumeClaim:
@@ -174,6 +185,9 @@ spec:
               mountPath: {{ printf "/var/lib/memgraph/internal_modules/%s" .file }}
               subPath: {{ .file | quote }}
           {{- end }}
+            - name: sysctl
+              mountPath: /etc/sysctl.conf
+              subPath: sysctl.conf
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
