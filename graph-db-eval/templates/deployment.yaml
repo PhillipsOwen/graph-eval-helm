@@ -35,6 +35,10 @@ spec:
 {{/*              value: "10"*/}}
             - name: "LOG_PATH"
               value: {{ .Values.logVolume.mountPath }}
+            - name: MEMGRAPH_DB_HOST
+              value: {{ .Values.env.memgraphHost}}
+            - name: MEMGRAPH_DB_PORT
+              value: {{ .Values.env.memgraphPort | quote }}
           volumeMounts:
             - name: {{ .Values.dataVolume.name }}
               mountPath: {{ .Values.dataVolume.mountPath }}
