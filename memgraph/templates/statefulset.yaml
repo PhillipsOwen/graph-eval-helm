@@ -27,11 +27,6 @@ spec:
         {{- toYaml . | nindent 4 }}
       {{- end }}
     spec:
-      {{- if .Values.serviceAccount.create }}
-      serviceAccount: {{ include "memgraph.serviceAccountName" . }}
-      {{- else if .Values.serviceAccount.name }}
-      serviceAccount: {{ .Values.serviceAccount.name | quote }}
-      {{- end }}
       initContainers:
       {{/*          command: [ '/bin/sh', '-c', 'sleep infinity' ]*/}}
         - name: init-volume-mounts
@@ -122,6 +117,7 @@ spec:
       containers:
         - name: memgraph
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{/*          command: ['/bin/sh', '-c', 'while true; do date; sleep 5; done']*/}}
           args:
           {{- range .Values.memgraphConfig }}
           - {{ . | quote }}
