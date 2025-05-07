@@ -31,8 +31,8 @@ spec:
           env:
             - name: 'KUZU_DB_PATH'
               value: {{ .Values.dataVolume.kuzuDBPath }}
-{{/*            - name: "LOG_LEVEL"*/}}
-{{/*              value: "10"*/}}
+            - name: "LOG_LEVEL"
+              value: "10"
             - name: "LOG_PATH"
               value: {{ .Values.logVolume.mountPath }}
             - name: MEMGRAPH_DB_HOST
@@ -44,6 +44,8 @@ spec:
               mountPath: {{ .Values.dataVolume.mountPath }}
             - name: {{ .Values.logVolume.name }}
               mountPath: {{ .Values.logVolume.mountPath }}
+            - name: nfs-mount
+              mountPath: /omnicorp
           command:
             - "uvicorn"
           args:
@@ -85,6 +87,10 @@ spec:
         - name: {{ .Values.logVolume.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.logVolume.claimName }}
+        - name: nfs-mount
+          nfs:
+            server: na-projects.edc.renci.org
+            path: /omnicorp
 
       {{- with .Values.nodeSelector }}
       nodeSelector:
