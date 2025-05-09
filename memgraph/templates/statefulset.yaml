@@ -30,7 +30,7 @@ spec:
       initContainers:
       {{/*          command: [ '/bin/sh', '-c', 'sleep infinity' ]*/}}
         - name: init-volume-mounts
-          image: busybox
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{/*          "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"*/}}
           volumeMounts:
           {{- if .Values.persistentVolumeClaim.createStorageClaim }}
@@ -61,7 +61,7 @@ spec:
 {{/*              sysctl -w vm.max_map_count={{ .Values.sysctlInitContainer.maxMapCount }};*/}}
           securityContext:
             readOnlyRootFilesystem: false
-{{/*            runAsUser: 0*/}}
+            runAsUser: 0
 {{/*            capabilities:*/}}
 {{/*              drop: ["ALL"]*/}}
 {{/*              add: ["CHOWN"]*/}}
