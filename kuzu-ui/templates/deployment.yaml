@@ -27,24 +27,34 @@ spec:
       serviceAccountName: {{ include "kuzu-ui.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      volumes:
+        - name: nfs-mount
+          nfs:
+            server: na-projects.edc.renci.org
+            path: /omnicorp
+
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: nfs-mount
+              mountPath: /omnicorp
+
+          env:
+            - name: KUZU_PATH
+              value: {{ .Values.dataVolume.kuzuDBPath }}
+
+{{/*          command: ['/bin/sh', '-c', 'sleep infinity']*/}}
+          command: ['/bin/sh', '-c', 'node src/server/index.js']
+
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
