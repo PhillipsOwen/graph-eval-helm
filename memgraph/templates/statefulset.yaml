@@ -138,9 +138,9 @@ spec:
             capabilities:
               drop: [ "ALL" ]
           # Run by 'memgraph' user as specified in the Dockerfile
-          {{- include "container.readinessProbe" .Values.container.readinessProbe | nindent 10 }}
-          {{- include "container.livenessProbe" .Values.container.livenessProbe | nindent 10 }}
-          {{- include "container.startupProbe" .Values.container.startupProbe | nindent 10 }}
+{{/*          {{- include "container.readinessProbe" .Values.container.readinessProbe | nindent 10 }}*/}}
+{{/*          {{- include "container.livenessProbe" .Values.container.livenessProbe | nindent 10 }}*/}}
+{{/*          {{- include "container.startupProbe" .Values.container.startupProbe | nindent 10 }}*/}}
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
