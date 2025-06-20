@@ -33,6 +33,9 @@ spec:
           nfs:
             server: na-projects.edc.renci.org
             path: /omnicorp
+        - name: fastapi-database-mount
+          persistentVolumeClaim:
+            claimName: graph-eval-data-pvc
 
       containers:
         - name: {{ .Chart.Name }}
@@ -43,6 +46,8 @@ spec:
           volumeMounts:
             - name: nfs-mount
               mountPath: /omnicorp
+            - name: fastapi-database-mount
+              mountPath: /database
 
           env:
             - name: KUZU_PATH
