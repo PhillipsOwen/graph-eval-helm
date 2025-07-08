@@ -1,1 +1,2 @@
 values.yaml filter=git-crypt diff=git-crypt
+dev-values.yaml filter=git-crypt diff=git-crypt
