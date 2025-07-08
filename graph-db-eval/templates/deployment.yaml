@@ -39,6 +39,17 @@ spec:
               value: {{ .Values.env.memgraphHost}}
             - name: MEMGRAPH_DB_PORT
               value: {{ .Values.env.memgraphPort | quote }}
+
+            - name: AGE_GRAPH_DB_DATABASE
+              value: {{ .Values.env.ageGraphDatabase | quote}}
+            - name: AGE_GRAPH_DB_HOST
+              value: {{ .Values.env.ageGraphHost | quote}}
+            - name: AGE_GRAPH_DB_PASSWORD
+              value: {{ .Values.env.ageGraphPassword | quote}}
+            - name: AGE_GRAPH_DB_PORT
+              value: {{ .Values.env.ageGraphPort | quote}}
+            - name: AGE_GRAPH_DB_USERNAME
+              value: {{ .Values.env.ageGraphUsername | quote}}
           volumeMounts:
             - name: {{ .Values.dataVolume.name }}
               mountPath: {{ .Values.dataVolume.mountPath }}
